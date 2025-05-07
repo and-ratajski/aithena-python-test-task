@@ -31,5 +31,9 @@ ENV/
 # Project specific
 results/
 
+# Environment variables
+.env
+
 # Misc
 .DS_Store
+**/.claude/settings.local.json
