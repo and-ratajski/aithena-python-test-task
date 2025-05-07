@@ -3,18 +3,10 @@
 This module contains functionality for detecting license types using LLM to analyze license texts.
 """
 import json
-from enum import Enum, auto
 from typing import Tuple
 
+from src.data_models.license_types import LicenseType
 from src.llm.protocols import LlmClient
-
-
-class LicenseType(Enum):
-    """Enum representing types of software licenses."""
-    PERMISSIVE = auto()  # Open source permissive (MIT, Apache, BSD, etc.)
-    COPYLEFT = auto()    # Open source copyleft (GPL, LGPL, AGPL, etc.)
-    PROPRIETARY = auto() # Closed source or custom license
-    UNKNOWN = auto()     # License couldn't be determined
 
 
 class LicenseDetector:

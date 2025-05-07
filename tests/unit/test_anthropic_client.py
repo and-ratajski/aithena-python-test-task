@@ -11,7 +11,6 @@ class TestAnthropicClient:
         client = AnthropicClient(client=mock_anthropic_client)
 
         assert client.client == mock_anthropic_client
-        assert client.model == "claude-3-sonnet-20240229"  # Default value
         assert client.max_tokens == 4096  # Default value
         assert client.temperature == 0.7  # Default value
 

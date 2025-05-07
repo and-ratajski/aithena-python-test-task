@@ -1,15 +1,30 @@
 """Services package for the AITHENA test task.
 
 This package contains services for processing files, detecting licenses,
-counting functions, and other operations needed for the test task.
+counting functions, analyzing code, and other operations needed for the test task.
 """
 
-from src.services.license_detector import LicenseDetector, LicenseType
+from src.services.code_analyzer import (
+    CodeAnalyzerError, CopyrightExtractor, FunctionExtractor
+)
 from src.services.function_counter import FunctionCounter, FunctionCounterError
+from src.services.license_detector import LicenseDetector
+from src.services.result_handler import ResultHandlerError, ResultSaver
 
 __all__ = [
+    # License detection
     'LicenseDetector', 
-    'LicenseType',
+    
+    # Function counting
     'FunctionCounter',
-    'FunctionCounterError'
+    'FunctionCounterError',
+    
+    # Code analysis
+    'CodeAnalyzerError',
+    'CopyrightExtractor',
+    'FunctionExtractor',
+    
+    # Result handling
+    'ResultHandlerError',
+    'ResultSaver'
 ]
