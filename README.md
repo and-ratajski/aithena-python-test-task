@@ -40,8 +40,11 @@ python main_async.py --data-dir custom_data --output-dir custom_results
 # Run unit tests
 pytest tests/unit
 
-# Run example tests (semi-integration)
+# Run example tests (semi-integration, slow)
 pytest examples
+
+# Altogether (with coverage)
+pytest
 ```
 
 ## Docker
