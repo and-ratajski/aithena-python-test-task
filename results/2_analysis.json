@@ -1,0 +1,25 @@
+{
+  "file_name": "2.py",
+  "copyright_holder": "Guido Musk",
+  "license_name": "GNU GPL v3",
+  "license_type": "COPYLEFT",
+  "function_count": 4,
+  "functions": [
+    {
+      "name": "foo",
+      "arg_count": 3
+    },
+    {
+      "name": "bar",
+      "arg_count": 1
+    },
+    {
+      "name": "foo1",
+      "arg_count": 1
+    },
+    {
+      "name": "bar1",
+      "arg_count": 1
+    }
+  ]
+}

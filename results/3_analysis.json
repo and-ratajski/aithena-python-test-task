@@ -1,0 +1,13 @@
+{
+  "file_name": "3.py",
+  "copyright_holder": "Brendan Eich",
+  "license_name": "MIT License",
+  "license_type": "PERMISSIVE",
+  "function_count": 1,
+  "functions": [
+    {
+      "name": "hello",
+      "arg_count": 1
+    }
+  ]
+}

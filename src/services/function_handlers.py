@@ -2,6 +2,7 @@
 
 This module contains functionality for counting functions in code files using LLM.
 """
+
 import json
 
 from src.data_models import FunctionInfo
@@ -11,44 +12,47 @@ from src.services.language_detector import LanguageDetector, ProgrammingLanguage
 
 class FunctionCounterError(Exception):
     """Exception raised for errors in the function counter."""
+
     pass
+
 
 class FunctionExtractorError(Exception):
     """Exception raised for errors in the function extractor."""
+
     pass
 
 
 class FunctionCounter:
     """Counts functions in code files using LLM."""
-    
+
     def __init__(self, llm_client: LlmClient) -> None:
         """Initialize the function counter with an LLM client.
-        
+
         Args:
             llm_client: An implementation of the LlmClient Protocol
         """
         self.llm_client = llm_client
         self.language_detector = LanguageDetector(llm_client)
-    
+
     def count_functions(self, file_content: str) -> int:
         """Count the number of functions in a file using LLM.
-        
+
         Args:
             file_content: The content of the file to analyze
-            
+
         Returns:
             The number of functions in the file
-            
+
         Raises:
             FunctionCounterError: If counting functions fails
         """
         try:
             # Detect language to provide better examples
             detected_language = self.language_detector.detect_language(file_content)
-            
+
             # Use LLM for function counting
             return self._count_functions_with_llm(file_content, detected_language)
-            
+
         except Exception as e:
             # Ensure all exceptions are properly wrapped
             if isinstance(e, FunctionCounterError):
@@ -56,17 +60,17 @@ class FunctionCounter:
             else:
                 # Wrap any other exception in FunctionCounterError
                 raise FunctionCounterError(f"Error counting functions: {str(e)}")
-    
+
     def _count_functions_with_llm(self, file_content: str, language: ProgrammingLanguage = None) -> int:
         """Count functions using the LLM, with language-specific prompting if language is known.
-        
+
         Args:
             file_content: The content of the file to analyze
             language: The detected programming language, if known
-            
+
         Returns:
             The number of functions in the file
-            
+
         Raises:
             FunctionCounterError: If counting functions fails
         """
@@ -75,7 +79,7 @@ Your task is to count the exact number of UNIQUE function definitions in the pro
 Focus only on function counting. Be precise and return only the count as a number.
 If a function with the same name is defined multiple times, count it only ONCE.
 """
-        
+
         language_specific_examples = ""
         if language == ProgrammingLanguage.PYTHON:
             language_specific_examples = """
@@ -233,7 +237,7 @@ private double subtract(double a, double b) {
 ```
 Response: {"function_count": 2}
 """
-        
+
         prompt = f"""Analyze the following code and count the number of UNIQUE function definitions it contains.
 If a function is defined multiple times with the same name, count it only ONCE.
 Respond ONLY with a JSON object with a single field "function_count" which contains the integer number of unique functions found.
@@ -260,25 +264,25 @@ Now count the unique functions in this code:
 {file_content}
 ```
 """
-        
+
         try:
             response = self.llm_client.generate_response(prompt, system_prompt)
-            
+
             # Parse the response - we expect a JSON object
             try:
                 result = json.loads(response)
                 function_count = result.get("function_count")
-                
+
                 # Validate the response
                 if function_count is None or not isinstance(function_count, int) or function_count < 0:
                     raise FunctionCounterError("Invalid function count returned by LLM")
-                
+
                 return function_count
-                
+
             except json.JSONDecodeError as e:
                 # If the response isn't valid JSON, raise an error
                 raise FunctionCounterError(f"Failed to parse LLM response as JSON: {str(e)}")
-                
+
         except LLMClientError as e:
             # If LLM request fails, raise a specific error
             raise FunctionCounterError(f"LLM request failed: {str(e)}")
@@ -357,8 +361,13 @@ Now extract the functions from this code:
                     name = item.get("name")
                     arg_count = item.get("arg_count")
 
-                    if (name is None or not isinstance(name, str) or
-                            arg_count is None or not isinstance(arg_count, int) or arg_count < 0):
+                    if (
+                        name is None
+                        or not isinstance(name, str)
+                        or arg_count is None
+                        or not isinstance(arg_count, int)
+                        or arg_count < 0
+                    ):
                         raise FunctionExtractorError("Invalid function information format")
 
                     functions.append(FunctionInfo(name=name, arg_count=arg_count))

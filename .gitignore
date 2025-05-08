@@ -28,9 +28,6 @@ ENV/
 *.swp
 *.swo
 
-# Project specific
-results/
-
 # Environment variables
 .env
 

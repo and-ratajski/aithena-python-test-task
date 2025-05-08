@@ -1,51 +1,63 @@
 # AITHENA License Analysis Tool
 
-This project analyzes Python files to extract license information and perform code analysis based on license type.
+Python tool that analyzes source files to extract license information and conditionally process them based on license type.
 
-## Features
-
-- Extracts copyright holder and license information from source files
-- Identifies license types (permissive vs. copyleft)
-- For permissive licenses: extracts function names with argument counts
-- For copyleft licenses:
-  - If file has >2 functions: extracts function names with argument counts
-  - If file has ≤2 functions: rewrites the file in Rust using LLM
-
-## Installation
+## Setup
 
 ```bash
-# Clone the repository
-git clone [repository-url]
+# Create and activate virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies (production only)
+pip install .
+
+# Install with development dependencies
+pip install ".[dev]"
+
+# Configure API keys
+cp .env.example .env
+# Edit .env to add your API keys
 ```
 
-## Usage
+## Running the Application
 
 ```bash
-# Run the main analysis
-python main.py
+# Run with default settings (Anthropic model)
+python main_async.py
 
-# Run tests
-pytest tests/
+# Specify model provider
+python main_async.py --provider anthropic
+python main_async.py --provider openai
+
+# Specify custom input/output directories
+python main_async.py --data-dir custom_data --output-dir custom_results
 ```
 
-## Project Structure
+## Testing
 
-```
-aithena-python-test-task/
-├── src/                  # Main source code
-│   ├── license/          # License detection and analysis
-│   ├── parser/           # Code parsing and function extraction
-│   ├── llm/              # LLM integration
-│   └── output/           # Output formatting
-├── tests/                # Test files
-├── data/                 # Input files
-├── results/              # Processed output files
-└── main.py               # Entry point
+```bash
+# Run unit tests
+pytest tests/unit
+
+# Run example tests (semi-integration)
+pytest examples
 ```
 
-## License
+## Docker
 
-This project is for assessment purposes. All rights reserved.
+```bash
+# Build Docker image
+docker build -t aithena-analyzer .
+
+# Run container (with default settings)
+docker run -it --rm aithena-analyzer
+
+# Mount custom data and results directories and specify environment variables
+docker run -it --rm \
+  -v $(pwd)/custom_results:/app/results \
+  -e LLM_PROVIDER=anthropic \
+  -e ANTHROPIC_MODEL_NAME=claude-3-7-sonnet-20250219 \
+  -e ANTHROPIC_API_KEY=your_key_here \
+  aithena-analyzer
+```

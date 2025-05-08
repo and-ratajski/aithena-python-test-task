@@ -1,0 +1,9 @@
+{
+  "file_name": "3.py",
+  "functions": [
+    {
+      "name": "hello",
+      "arg_count": 1
+    }
+  ]
+}

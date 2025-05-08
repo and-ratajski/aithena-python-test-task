@@ -2,21 +2,20 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY pyproject.toml README.md ./
 
-# Copy source code
+# Install only required dependencies (no dev dependencies)
+RUN pip install --no-cache-dir .
+
 COPY src/ ./src/
 COPY data/ ./data/
-COPY main.py .
+COPY main_async.py .
 
 # Create results directory
 RUN mkdir -p results
 
-# Set environment variables
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
 # Run the application
-CMD ["python", "main.py"]
+CMD ["python", "main_async.py", "--provider", "anthropic"]

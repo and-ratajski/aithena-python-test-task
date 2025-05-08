@@ -44,10 +44,6 @@ class TestAnthropicClient:
         response = client.rewrite_to_rust(python_code)
 
         assert "fn main() {" in response
-        assert "println!(\"Hello, world!\");" in response
-        
-        # Verify the system prompt was correctly formed with Rust instructions
+        assert 'println!("Hello, world!");' in response
         assert "rust" in mock_anthropic_client.messages.last_system.lower()
-        
-        # Verify the prompt contains the Python code
         assert python_code in mock_anthropic_client.messages.last_messages[0]["content"]

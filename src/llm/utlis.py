@@ -1,9 +1,13 @@
 from typing import Literal
 
-from src.llm import LlmClient, AnthropicClient, OpenAIClient
+from typing_extensions import TypeVar
+
+from src.llm import AnthropicClient, LlmClient, OpenAIClient
+
+ProviderType = TypeVar("ProviderType", bound=Literal["anthropic", "openai"])
 
 
-def get_llm_client(provider: Literal["anthropic", "openai"] = "anthropic") -> LlmClient:
+def get_llm_client(provider: ProviderType = "anthropic") -> LlmClient:
     """Factory function to get an LlmClient implementation based on provider.
 
     This demonstrates how clients can be used interchangeably through the Protocol.

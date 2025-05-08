@@ -2,7 +2,9 @@
 
 This module contains functionality for detecting license types using LLM to analyze license texts.
 """
+
 import json
+import logging
 
 from src.data_models.license_types import LicenseType
 from src.llm.protocols import LlmClient
@@ -10,21 +12,21 @@ from src.llm.protocols import LlmClient
 
 class LicenseDetector:
     """Detects license types from file content using LLM."""
-    
+
     def __init__(self, llm_client: LlmClient) -> None:
         """Initialize the license detector with an LLM client.
-        
+
         Args:
             llm_client: An implementation of the LlmClient Protocol
         """
         self.llm_client = llm_client
-    
+
     def get_license_type(self, file_content: str) -> tuple[LicenseType, str]:
         """Determine the license type of a file using LLM.
-        
+
         Args:
             file_content: The content of the file to analyze
-            
+
         Returns:
             A tuple of (LicenseType, license_name)
         """
@@ -38,7 +40,7 @@ You will categorize licenses into one of these types:
 
 Be precise and focused in your response. DO NOT provide explanations, just the categorization result.
 """
-        
+
         prompt = f"""Analyze the following code file header and determine its license type. Focus only on the license
 text and copyright information.
 Respond ONLY with a JSON object that has two fields:
@@ -83,16 +85,16 @@ Now analyze this header:
 {file_content[:1000]}  # Only send the first 1000 chars, which should contain the license
 ```
 """
-        
+
         try:
             response = self.llm_client.generate_response(prompt, system_prompt)
-            
+
             # Parse the response - we expect a JSON object
             try:
                 result = json.loads(response)
                 license_type_str = result.get("license_type", "UNKNOWN")
                 license_name = result.get("license_name", "Unknown License")
-                
+
                 # Convert string to LicenseType enum
                 license_type = LicenseType.UNKNOWN
                 if license_type_str == "PERMISSIVE":
@@ -101,14 +103,14 @@ Now analyze this header:
                     license_type = LicenseType.COPYLEFT
                 elif license_type_str == "PROPRIETARY":
                     license_type = LicenseType.PROPRIETARY
-                
+
                 return license_type, license_name
-                
+
             except json.JSONDecodeError:
                 # If the response isn't valid JSON, fallback to UNKNOWN
                 return LicenseType.UNKNOWN, "Unknown License"
-                
+
         except Exception as e:
             # If LLM request fails, fallback to UNKNOWN
-            print(f"Error determining license with LLM: {str(e)}")
+            logging.error("Error determining license with LLM: %s", str(e))
             return LicenseType.UNKNOWN, "Unknown License"

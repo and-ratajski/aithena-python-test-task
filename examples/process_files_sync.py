@@ -4,23 +4,24 @@ Example:
     Run this doctest with (mind that you need to create .env file with your API keys):
     
     ```
-    python -m doctest -v examples/process_file.py
+    python -m doctest -v examples/process_files_sync.py
     ```
 """
-import os
+
 import doctest
+import json
+import os
 import shutil
 import tempfile
-import json
 
-from src.llm.utlis import get_llm_client
 from src.aithena_task_solver import process_file
+from src.llm.utlis import get_llm_client
 
 
 def test_processing_file_1() -> None:
     """
     Demonstrate the full workflow of processing file 1.py with the AITHENA task solver..
-    
+
     This test:
     1. Reads a Python file from the data directory
     2. Processes it with a real LLM client
@@ -59,7 +60,7 @@ def test_processing_file_1() -> None:
 def test_processing_file_2() -> None:
     """
     Demonstrate the full workflow of processing file 2.py with the AITHENA task solver.
-    
+
     This test:
     1. Reads a Python file from the data directory
     2. Processes it with a real LLM client
@@ -97,7 +98,7 @@ def test_processing_file_2() -> None:
 def test_processing_file_3() -> None:
     """
     Demonstrate the full workflow of processing file 3.py with the AITHENA task solver.
-    
+
     This test:
     1. Reads a JavaScript file with JavaScript-style comments (.py extension)
     2. Processes it with a real LLM client
@@ -133,10 +134,11 @@ def test_processing_file_3() -> None:
 
 
 def read_test_file(file_name: str) -> str:
-    file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', file_name)
-    with open(file_path, 'r') as f:
+    file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", file_name)
+    with open(file_path, "r") as f:
         file_content = f.read()
     return file_content
+
 
 def check_saved_files(saved_files) -> None:
     print(f"Number of saved files: {len(saved_files)}")
@@ -145,22 +147,23 @@ def check_saved_files(saved_files) -> None:
         print(f"- {file_name}")
 
         # For the analysis JSON file, verify its content
-        if file_name.endswith('_analysis.json'):
-            with open(file_path, 'r') as f:
+        if file_name.endswith("_analysis.json"):
+            with open(file_path, "r") as f:
                 data = json.load(f)
             print(f"  - File contains copyright_holder: {'copyright_holder' in data}")
             print(f"  - File contains license_name: {'license_name' in data}")
-        
+
         # For the functions JSON file, verify it contains function entries
-        elif file_name.endswith('_functions.json'):
+        elif file_name.endswith("_functions.json"):
             print(f"  - File contains function entries")
 
         # For the Rust file, check that it contains the expected content
-        elif file_name.endswith('.rs'):
-            with open(file_path, 'r') as f:
+        elif file_name.endswith(".rs"):
+            with open(file_path, "r") as f:
                 content = f.read()
             print(f"  - Contains fn foo(): {'fn foo()' in content}")
             print(f"  - Contains fn bar(): {'fn bar()' in content}")
+
 
 if __name__ == "__main__":
     doctest.testmod(verbose=True)

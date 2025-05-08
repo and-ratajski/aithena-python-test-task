@@ -1,0 +1,21 @@
+{
+  "file_name": "2.py",
+  "functions": [
+    {
+      "name": "foo",
+      "arg_count": 3
+    },
+    {
+      "name": "bar",
+      "arg_count": 1
+    },
+    {
+      "name": "foo1",
+      "arg_count": 1
+    },
+    {
+      "name": "bar1",
+      "arg_count": 1
+    }
+  ]
+}
