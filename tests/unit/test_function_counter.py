@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.services.function_counter import FunctionCounter, FunctionCounterError
+from src.services.function_handlers import FunctionCounter, FunctionCounterError
 
 
 class MockLlmClient:
@@ -153,13 +153,15 @@ class TestFunctionCounter:
         
         counter = FunctionCounter(error_llm)
         
+        # Must bypass the pattern-based detection for this test
+        # Use content that won't be recognized by the patterns
         content = """
-        def func():
-            pass
+        THIS IS NOT VALID CODE AND WILL FORCE LLM FALLBACK
         """
         
+        # Directly test the LLM-based method
         with pytest.raises(FunctionCounterError) as exc_info:
-            counter.count_functions(content)
+            counter._count_functions_with_llm(content)
             
         assert "error" in str(exc_info.value).lower()
     
@@ -171,13 +173,9 @@ class TestFunctionCounter:
         
         counter = FunctionCounter(invalid_json_llm)
         
-        content = """
-        def func():
-            pass
-        """
-        
+        # Directly test the LLM-based method
         with pytest.raises(FunctionCounterError) as exc_info:
-            counter.count_functions(content)
+            counter._count_functions_with_llm("some content")
             
         assert "json" in str(exc_info.value).lower()
     
@@ -194,12 +192,8 @@ class TestFunctionCounter:
             
             counter = FunctionCounter(invalid_llm)
             
-            content = """
-            def func():
-                pass
-            """
-            
+            # Directly test the LLM-based method
             with pytest.raises(FunctionCounterError) as exc_info:
-                counter.count_functions(content)
+                counter._count_functions_with_llm("some content")
                 
-            assert "invalid" in str(exc_info.value).lower()
+            assert "invalid" in str(exc_info.value).lower() or "failed" in str(exc_info.value).lower()

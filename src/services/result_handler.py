@@ -1,11 +1,6 @@
-"""Result handler implementation.
-
-This module contains functionality for saving analysis results to various file formats.
-"""
 import json
 import os
 from pathlib import Path
-from typing import Dict
 
 
 class ResultHandlerError(Exception):
@@ -17,7 +12,7 @@ class ResultSaver:
     """Saves analysis results to various file formats."""
     
     @staticmethod
-    def save_to_json(result_data: Dict, output_dir: str, file_name: str, suffix: str = "analysis") -> str:
+    def save_to_json(result_data: dict, output_dir: str, file_name: str, suffix: str = "analysis") -> str:
         """Save analysis result to a JSON file.
         
         Args:

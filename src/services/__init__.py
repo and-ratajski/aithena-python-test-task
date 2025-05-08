@@ -5,25 +5,27 @@ counting functions, analyzing code, and other operations needed for the test tas
 """
 
 from src.services.code_analyzer import (
-    CodeAnalyzerError, CopyrightExtractor, FunctionExtractor
+    CodeAnalyzerError, CopyrightExtractor
 )
-from src.services.function_counter import FunctionCounter, FunctionCounterError
+from src.services.function_handlers import FunctionCounter, FunctionCounterError, FunctionExtractor, \
+    FunctionExtractorError
 from src.services.license_detector import LicenseDetector
 from src.services.result_handler import ResultHandlerError, ResultSaver
 
 __all__ = [
     # License detection
-    'LicenseDetector', 
-    
-    # Function counting
+    'LicenseDetector',
+
+    # Function handling
     'FunctionCounter',
     'FunctionCounterError',
-    
+    'FunctionExtractor',
+    'FunctionExtractorError',
+
     # Code analysis
     'CodeAnalyzerError',
     'CopyrightExtractor',
-    'FunctionExtractor',
-    
+
     # Result handling
     'ResultHandlerError',
     'ResultSaver'

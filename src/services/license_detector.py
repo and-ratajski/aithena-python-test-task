@@ -3,7 +3,6 @@
 This module contains functionality for detecting license types using LLM to analyze license texts.
 """
 import json
-from typing import Tuple
 
 from src.data_models.license_types import LicenseType
 from src.llm.protocols import LlmClient
@@ -20,7 +19,7 @@ class LicenseDetector:
         """
         self.llm_client = llm_client
     
-    def get_license_type(self, file_content: str) -> Tuple[LicenseType, str]:
+    def get_license_type(self, file_content: str) -> tuple[LicenseType, str]:
         """Determine the license type of a file using LLM.
         
         Args:
@@ -81,7 +80,7 @@ Response: {{"license_type": "PROPRIETARY", "license_name": "Proprietary"}}
 ---
 Now analyze this header:
 ```
-{file_content[:500]}  # Only send the first 500 chars, which should contain the license
+{file_content[:1000]}  # Only send the first 1000 chars, which should contain the license
 ```
 """
         
