@@ -30,7 +30,7 @@ dev = [
 ]
 
 [project.urls]
-Repository = "https://github.com/andrzej-r/aithena-python-test-task"
+Repository = "https://github.com/and-ratajski/aithena-python-test-task"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

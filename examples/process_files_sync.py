@@ -20,7 +20,7 @@ from src.llm.utlis import get_llm_client
 
 def test_processing_file_1() -> None:
     """
-    Demonstrate the full workflow of processing file 1.py with the AITHENA task solver..
+    Demonstrate the full workflow of processing file 1.py with the AITHENA task solver.
 
     This test:
     1. Reads a Python file from the data directory
