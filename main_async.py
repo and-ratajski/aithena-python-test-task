@@ -12,7 +12,6 @@ from src.aithena_task_solver import process_file
 from src.data_models.analysis_models import FileAnalysisResult
 from src.agents.utils import configure_pydantic_ai, ANTHROPIC, OPENAI
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)-8s - %(name)s - %(message)s",
@@ -33,14 +32,12 @@ async def process_files_async(input_dir: str, output_dir: str, max_workers: int 
     Returns:
         List of FileAnalysisResult objects
     """
-    # Get all Python files
     input_path = Path(input_dir)
     files = list(input_path.glob("*.py"))
     
     if not files:
         logging.warning(f"No Python files found in {input_dir}")
         return []
-    
     logging.info(f"Found {len(files)} Python files to process")
     
     # Create output directory if it doesn't exist
@@ -65,8 +62,6 @@ async def process_files_async(input_dir: str, output_dir: str, max_workers: int 
             loop.run_in_executor(executor, partial(process_file_wrapper, file_path))
             for file_path in files
         ]
-        
-        # Run tasks and collect results
         results = await asyncio.gather(*tasks)
     
     return results
@@ -87,21 +82,11 @@ def parse_args() -> argparse.Namespace:
 async def main() -> None:
     """Main entry point for the AITHENA Python Test Task."""
     args = parse_args()
-    
-    # Configure Pydantic AI
+
     configure_pydantic_ai(args.provider)
-    
-    # Process files in parallel
     results = await process_files_async(args.input, args.output, args.max_workers)
-    
-    # Print summary
+
     logging.info(f"Processed {len(results)} files")
-    for result in results:
-        file_info = f"{result.file_name}: {result.license_type.name} license, "
-        file_info += f"copyright: {result.copyright_holder}, "
-        file_info += f"functions: {result.function_count}"
-        logging.info(file_info)
-    
     logging.info("Done!")
 
 
