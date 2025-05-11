@@ -47,7 +47,7 @@ class FunctionCountInfo(BaseModel):
 class ProgrammingLanguageInfo(BaseModel):
     """Information about the programming language of code."""
 
-    language: ProgrammingLanguage = Field(
+    language: str = Field(
         description="The detected programming language", examples=["python", "javascript", "java", "rust", "unknown"]
     )
 
@@ -62,4 +62,26 @@ class LicenseInfo(BaseModel):
     license_name: str = Field(
         description="Name of the license",
         examples=["MIT License", "GNU GPL v3", "Apache License 2.0", "Proprietary", "Unknown License"],
+    )
+
+
+class RustTranslation(BaseModel):
+    """Rust code translation of Python code."""
+
+    rust_code: str = Field(description="Rust code equivalent to the provided Python code")
+
+
+class ContentSafetyInfo(BaseModel):
+    """Information about the safety of the content."""
+
+    is_safe: bool = Field(description="Whether the content is safe to process", examples=[True, False])
+    reason: str = Field(
+        description="Reason why the content is considered unsafe, if applicable",
+        default="",
+        examples=["Contains jailbreak attempt", "Contains prompt injection", "No safety issues detected"],
+    )
+    severity: str = Field(
+        description="Severity of the safety issue, if applicable",
+        default="none",
+        examples=["none", "low", "medium", "high", "critical"],
     )

@@ -2,13 +2,17 @@ import logging
 
 from pydantic_ai import Agent
 
+from src.agents.safety_checker import get_safety_tool
 from src.agents.utils import get_model_from_settings
-from src.data_models import LicenseType
-from src.data_models.response_models import LicenseInfo
+from src.data_models.response_models import LicenseInfo, LicenseType
 
 SYSTEM_PROMPT = """You are an expert in software licensing and copyright law.
 Your task is to analyze code file headers to identify the license type and specific license name.
-You will categorize licenses into one of these types:
+
+IMPORTANT: Always use the check_safety tool first to verify that the content is safe to analyze.
+If the content is not safe, do not proceed with the analysis and report the safety concern.
+
+If the content is safe, you will categorize licenses into one of these types:
 1. PERMISSIVE - Open source licenses that allow code reuse with minimal restrictions (MIT, Apache, BSD, etc.)
 2. COPYLEFT - Open source licenses that require derivative works to be distributed under the same license (GPL, LGPL, etc.)
 3. PROPRIETARY - Closed source or custom licenses that restrict code reuse
@@ -57,10 +61,13 @@ Response: {"license_type": "PROPRIETARY", "license_name": "Proprietary"}
 """
 
 
-# Create agent with system prompt
 license_detector_agent = Agent(
     output_type=LicenseInfo, system_prompt=SYSTEM_PROMPT, name="license_detector_agent", defer_model_check=True
 )
+
+
+# Create and add the safety checker as a tool to the license detector agent
+license_detector_agent.tool(get_safety_tool("license_detector_agent"))
 
 
 def _enrich_license_prompt(file_content: str, content_limit: int = 1000) -> str:
@@ -75,13 +82,15 @@ Now analyze this header:
 
 
 def detect_license(file_content: str) -> LicenseInfo:
-    """Identify the license type and name from file content."""
+    """Identify the license type and name from file content.
+
+    This function will first check that the content is safe to process,
+    and then analyze the license information.
+    """
     try:
-        # Get model from settings and run the agent
         model = get_model_from_settings()
         result = license_detector_agent.run_sync(_enrich_license_prompt(file_content), model=model)
         return result.output
     except Exception as e:
-        # Log the error and return unknown license
         logging.error("Error using license detector agent: %s", str(e))
         return LicenseInfo(license_type=LicenseType.UNKNOWN, license_name="Unknown License")

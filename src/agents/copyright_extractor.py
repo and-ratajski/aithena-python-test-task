@@ -2,13 +2,18 @@ import logging
 
 from pydantic_ai import Agent
 
+from src.agents.safety_checker import get_safety_tool
 from src.agents.utils import get_model_from_settings
 from src.data_models.response_models import CopyrightInfo
 
 SYSTEM_PROMPT = """
 You are an expert in software licensing and copyright law.
 Your task is to extract the copyright holder name from code file headers.
-Focus only on the copyright information. Be precise and return only the name of the copyright holder.
+
+IMPORTANT: Always use the check_safety tool first to verify that the content is safe to analyze.
+If the content is not safe, do not proceed with the analysis and report the safety concern.
+
+If the content is safe, focus only on the copyright information. Be precise and return only the name of the copyright holder.
 
 Analyze the following code file header and extract the copyright holder name.
 Respond ONLY with a JSON object with a single field "copyright_holder" which contains the name of the copyright holder.
@@ -46,6 +51,10 @@ copyright_agent = Agent(
 )
 
 
+# Create and add the safety checker as a tool to the copyright agent
+copyright_agent.tool(get_safety_tool("copyright_agent"))
+
+
 def _enrich_copyright_prompt(file_content: str, content_limit: int = 1000) -> str:
     """Enrich the copyright extraction prompt with file content."""
     return f"""
@@ -58,13 +67,15 @@ Now extract the copyright holder from this file:
 
 
 def extract_copyright_holder(file_content: str) -> CopyrightInfo:
-    """Extract the copyright holder information from file content."""
+    """Extract the copyright holder information from file content.
+
+    This function will first check that the content is safe to process,
+    and then extract copyright information.
+    """
     try:
-        # Get model from settings and run the agent
         model = get_model_from_settings()
         result = copyright_agent.run_sync(_enrich_copyright_prompt(file_content), model=model)
         return result.output
     except Exception as e:
-        # Log the error and return unknown copyright holder
         logging.error("Error using copyright extractor agent: %s", str(e))
         return CopyrightInfo(copyright_holder="Unknown")

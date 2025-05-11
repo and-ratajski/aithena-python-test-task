@@ -15,7 +15,7 @@ from src.agents.utils import configure_pydantic_ai, ANTHROPIC, OPENAI
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    format="%(asctime)s - %(levelname)-8s - %(name)s - %(message)s",
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 
@@ -79,7 +79,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", "-o", default="results", help="Directory to save results to")
     parser.add_argument("--provider", "-p", default=ANTHROPIC, choices=[ANTHROPIC, OPENAI], 
                         help="LLM provider to use")
-    parser.add_argument("--max-workers", "-w", type=int, default=3, 
+    parser.add_argument("--max-workers", "-w", type=int, default=2,
                         help="Maximum number of concurrent workers")
     return parser.parse_args()
 

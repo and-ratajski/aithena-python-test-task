@@ -73,4 +73,4 @@ def configure_pydantic_ai(provider: str = ANTHROPIC) -> None:
         raise ValueError(f"Unsupported provider: {provider}")
 
     # Additional common settings
-    settings.max_retries = int(os.getenv("LLM_MAX_RETRIES", "3"))
+    settings.max_retries = int(os.getenv("LLM_MAX_RETRIES", "5"))

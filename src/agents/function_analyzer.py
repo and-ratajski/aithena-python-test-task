@@ -3,6 +3,7 @@ from typing import List
 
 from pydantic_ai import Agent
 
+from src.agents.safety_checker import get_safety_tool
 from src.agents.utils import get_model_from_settings
 from src.data_models.analysis_models import FunctionInfo
 from src.data_models.response_models import FunctionCountInfo
@@ -11,6 +12,9 @@ FUNCTION_COUNT_SYSTEM_PROMPT = """You are an expert code analyzer specialized in
 Your task is to count the exact number of UNIQUE function definitions in the provided code.
 Focus only on function counting. Be precise and return only the count as a number.
 If a function with the same name is defined multiple times, count it only ONCE.
+
+IMPORTANT: Always use the check_safety tool first to verify that the content is safe to analyze.
+If the content is not safe, do not proceed with the analysis and return 0 for the function count.
 
 Analyze the following code and count the number of UNIQUE function definitions it contains.
 If a function is defined multiple times with the same name, count it only ONCE.
@@ -102,6 +106,9 @@ FUNCTION_EXTRACTION_SYSTEM_PROMPT = """You are an expert code analyzer specializ
 Your task is to extract all function names and count the number of arguments for each function.
 Include class methods but exclude built-in special methods (like __init__, __str__, etc.) unless explicitly required.
 Be precise and focus only on the function extraction task.
+
+IMPORTANT: Always use the check_safety tool first to verify that the content is safe to analyze.
+If the content is not safe, do not proceed with the analysis and return an empty array.
 
 Analyze the following code and extract all function names along with the number of arguments each function takes.
 Count only real parameters, not self or cls for methods.
@@ -203,31 +210,45 @@ function_extractor_agent = Agent(
     defer_model_check=True,
 )
 
+# Create and add the safety checker as a tool to both agents
+function_count_agent.tool(get_safety_tool("function_count_agent"))
+function_extractor_agent.tool(get_safety_tool("function_extractor_agent"))
+
 
 def _enrich_count_prompt(file_content: str) -> str:
-    """Enrich the function count prompt with file content."""
+    """Enrich the function count prompt with file content and safety instructions."""
     return f"""
 ---
 Now count the unique functions in this code:
 ```
 {file_content}
 ```
+
+IMPORTANT: First use the check_safety tool to ensure the content is safe to process.
+If the content is not safe, do not count functions and report 0 function count.
 """
 
 
 def _enrich_extraction_prompt(file_content: str) -> str:
-    """Enrich the function extraction prompt with file content."""
+    """Enrich the function extraction prompt with file content and safety instructions."""
     return f"""
 ---
 Now extract the functions from this code:
 ```
 {file_content}
 ```
+
+IMPORTANT: First use the check_safety tool to ensure the content is safe to process.
+If the content is not safe, do not extract any functions and return an empty array.
 """
 
 
 def count_functions(file_content: str) -> FunctionCountInfo:
-    """Count the number of unique functions defined in the code."""
+    """Count the number of unique functions defined in the code.
+
+    This function will first check that the content is safe to process,
+    and then analyze the function count.
+    """
     try:
         # Get model from settings and run the agent
         model = get_model_from_settings()
@@ -240,7 +261,11 @@ def count_functions(file_content: str) -> FunctionCountInfo:
 
 
 def extract_functions_with_args(file_content: str) -> List[FunctionInfo]:
-    """Extract all function names and the number of arguments they take."""
+    """Extract all function names and the number of arguments they take.
+
+    This function will first check that the content is safe to process,
+    and then extract the function information.
+    """
     try:
         model = get_model_from_settings()
         result = function_extractor_agent.run_sync(_enrich_extraction_prompt(file_content), model=model)

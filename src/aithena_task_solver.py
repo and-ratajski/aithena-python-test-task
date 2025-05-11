@@ -1,13 +1,10 @@
 """AITHENA Task Solver implementation using Pydantic AI."""
 
 import logging
-from typing import List, Optional
 
 from src.agents.code_translator import rewrite_to_rust
 from src.agents.copyright_extractor import extract_copyright_holder
 from src.agents.function_analyzer import count_functions, extract_functions_with_args
-
-# Import refactored agent functions
 from src.agents.license_detector import detect_license
 from src.data_models.analysis_models import FileAnalysisResult
 from src.data_models.response_models import LicenseType
