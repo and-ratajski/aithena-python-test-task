@@ -9,7 +9,7 @@ RUN pip install --no-cache-dir .
 
 COPY src/ ./src/
 COPY data/ ./data/
-COPY main_async.py .
+COPY main_async.py ./
 
 # Create results directory
 RUN mkdir -p results
@@ -17,5 +17,5 @@ RUN mkdir -p results
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
-# Run the application
+# Run the application with Pydantic AI
 CMD ["python", "main_async.py", "--provider", "anthropic"]

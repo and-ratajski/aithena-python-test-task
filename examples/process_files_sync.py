@@ -15,7 +15,7 @@ import shutil
 import tempfile
 
 from src.aithena_task_solver import process_file
-from src.llm.utlis import get_llm_client
+from src.agents.utils import configure_pydantic_ai
 
 
 def test_processing_file_1() -> None:
@@ -24,16 +24,16 @@ def test_processing_file_1() -> None:
 
     This test:
     1. Reads a Python file from the data directory
-    2. Processes it with a real LLM client
+    2. Processes it using Pydantic AI
     3. Verifies the expected results
 
     >>> temp_dir = tempfile.mkdtemp()
     >>> try:
     ...     file_name='1.py'
     ...     file_content = read_test_file(file_name)
-    ...     client = get_llm_client()
+    ...     configure_pydantic_ai("anthropic")
     ...
-    ...     result, saved_files = process_file(client, file_name, file_content, temp_dir)
+    ...     result, saved_files = process_file(file_name, file_content, temp_dir)
     ...
     ...     print(f"Copyright holder: {result.copyright_holder}")
     ...     print(f"License name: {result.license_name}")
@@ -63,16 +63,16 @@ def test_processing_file_2() -> None:
 
     This test:
     1. Reads a Python file from the data directory
-    2. Processes it with a real LLM client
+    2. Processes it using Pydantic AI
     3. Verifies the expected results
 
     >>> temp_dir = tempfile.mkdtemp()
     >>> try:
     ...     file_name='2.py'
     ...     file_content = read_test_file(file_name)
-    ...     client = get_llm_client()
+    ...     configure_pydantic_ai("anthropic")
     ...
-    ...     result, saved_files = process_file(client, file_name, file_content, temp_dir)
+    ...     result, saved_files = process_file(file_name, file_content, temp_dir)
     ...
     ...     print(f"Copyright holder: {result.copyright_holder}")
     ...     print(f"License name: {result.license_name}")
@@ -101,16 +101,16 @@ def test_processing_file_3() -> None:
 
     This test:
     1. Reads a JavaScript file with JavaScript-style comments (.py extension)
-    2. Processes it with a real LLM client
+    2. Processes it using Pydantic AI
     3. Verifies the expected results
 
     >>> temp_dir = tempfile.mkdtemp()
     >>> try:
     ...     file_name='3.py'
     ...     file_content = read_test_file(file_name)
-    ...     client = get_llm_client()
+    ...     configure_pydantic_ai("anthropic")
     ...
-    ...     result, saved_files = process_file(client, file_name, file_content, temp_dir)
+    ...     result, saved_files = process_file(file_name, file_content, temp_dir)
     ...
     ...     print(f"Copyright holder: {result.copyright_holder}")
     ...     print(f"License name: {result.license_name}")
