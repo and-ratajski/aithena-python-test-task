@@ -10,7 +10,7 @@ from pathlib import Path
 
 from src.aithena_task_solver import process_file
 from src.data_models.analysis_models import FileAnalysisResult
-from src.llm import LlmClient, ProviderType, get_llm_client
+from src.agents.utils import configure_pydantic_ai, ANTHROPIC, OPENAI
 
 # Configure logging
 logging.basicConfig(
@@ -20,91 +20,90 @@ logging.basicConfig(
 )
 
 
-async def process_file_async(
-    llm_client: LlmClient, file_path: Path, output_dir: str = "results"
-) -> tuple[FileAnalysisResult, list[str]]:
-    """Asynchronous wrapper for processing a single file."""
-    file_name = file_path.name
-    loop = asyncio.get_event_loop()
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            file_content = await loop.run_in_executor(None, f.read)
-    except Exception as e:
-        logging.error("Failed to read file %s: %s", file_path, str(e))
-        raise
+async def process_files_async(input_dir: str, output_dir: str, max_workers: int = 3) -> list[FileAnalysisResult]:
+    """Process multiple files in parallel using a thread pool.
 
-    # Process file in a ThreadPoolExecutor to avoid blocking the event loop
-    process_func = partial(process_file, llm_client, file_name, file_content, output_dir)
-    with ThreadPoolExecutor() as executor:
-        result = await loop.run_in_executor(executor, process_func)
+    Limits the maximum number of concurrent requests to stay within API rate limits.
 
-    return result
+    Args:
+        input_dir: Directory containing files to process
+        output_dir: Directory to save results to
+        max_workers: Maximum number of concurrent workers
 
-
-async def process_files_async(
-    llm_client: LlmClient, data_dir: str = "data", output_dir: str = "results", file_pattern: str = "*.py"
-) -> list[tuple[FileAnalysisResult, list[str]]]:
-    """Process all files in the data directory concurrently."""
-    # Get all files matching the pattern
-    data_path = Path(data_dir)
-    if not data_path.exists() or not data_path.is_dir():
-        raise ValueError("Data directory %s does not exist or is not a directory" % data_dir)
-
-    files = list(data_path.glob(file_pattern))
+    Returns:
+        List of FileAnalysisResult objects
+    """
+    # Get all Python files
+    input_path = Path(input_dir)
+    files = list(input_path.glob("*.py"))
+    
     if not files:
-        logging.warning("No files found matching pattern %s in %s", file_pattern, data_dir)
+        logging.warning(f"No Python files found in {input_dir}")
         return []
-
-    # Process files concurrently
-    logging.info("Processing %d files from %s", len(files), data_dir)
-    tasks = [process_file_async(llm_client, file_path, output_dir) for file_path in files]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-
+    
+    logging.info(f"Found {len(files)} Python files to process")
+    
+    # Create output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Function to process a single file
+    def process_file_wrapper(file_path: Path) -> FileAnalysisResult:
+        file_name = file_path.name
+        with open(file_path, "r") as f:
+            file_content = f.read()
+        
+        logging.info(f"Processing {file_name}...")
+        result, saved_files = process_file(file_name, file_content, output_dir)
+        logging.info(f"Completed {file_name}, saved {len(saved_files)} files")
+        return result
+    
+    # Process files in parallel with limited concurrency
+    loop = asyncio.get_event_loop()
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Create a list of tasks using ThreadPoolExecutor
+        tasks = [
+            loop.run_in_executor(executor, partial(process_file_wrapper, file_path))
+            for file_path in files
+        ]
+        
+        # Run tasks and collect results
+        results = await asyncio.gather(*tasks)
+    
     return results
 
 
-async def main(model_provider: ProviderType, data_dir: str, output_dir: str) -> None:
-    """
-    Main async entry point for the application.
+def parse_args() -> argparse.Namespace:
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description="AITHENA Python Test Task")
+    parser.add_argument("--input", "-i", default="data", help="Directory containing Python files to process")
+    parser.add_argument("--output", "-o", default="results", help="Directory to save results to")
+    parser.add_argument("--provider", "-p", default=ANTHROPIC, choices=[ANTHROPIC, OPENAI], 
+                        help="LLM provider to use")
+    parser.add_argument("--max-workers", "-w", type=int, default=3, 
+                        help="Maximum number of concurrent workers")
+    return parser.parse_args()
 
-    Args:
-        model_provider: The model provider to use ("anthropic" or "openai")
-        data_dir: Directory containing files to process
-        output_dir: Directory to save results to
-    """
-    try:
-        llm_client = get_llm_client(model_provider)
-        logging.info("Using %s LLM client", model_provider)
 
-        results = await process_files_async(llm_client, data_dir, output_dir)
-
-        num_files_saved = sum(len(saved_files) for _, saved_files in results)
-        logging.info("Successfully processed %d files, saved %d result files", len(results), num_files_saved)
-    except Exception as e:
-        logging.error("An error occurred: %s", str(e))
-        raise
+async def main() -> None:
+    """Main entry point for the AITHENA Python Test Task."""
+    args = parse_args()
+    
+    # Configure Pydantic AI
+    configure_pydantic_ai(args.provider)
+    
+    # Process files in parallel
+    results = await process_files_async(args.input, args.output, args.max_workers)
+    
+    # Print summary
+    logging.info(f"Processed {len(results)} files")
+    for result in results:
+        file_info = f"{result.file_name}: {result.license_type.name} license, "
+        file_info += f"copyright: {result.copyright_holder}, "
+        file_info += f"functions: {result.function_count}"
+        logging.info(file_info)
+    
+    logging.info("Done!")
 
 
 if __name__ == "__main__":
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description="AITHENA Python Test Task")
-    parser.add_argument(
-        "--provider",
-        type=str,
-        choices=["anthropic", "openai"],
-        default="anthropic",
-        help="Model provider to use (default: anthropic)",
-    )
-    parser.add_argument(
-        "--data-dir", type=str, default="data", help="Directory containing files to process (default: data)"
-    )
-    parser.add_argument(
-        "--output-dir", type=str, default="results", help="Directory to save results to (default: results)"
-    )
-    args = parser.parse_args()
-
-    # Ensure output directory exists
-    os.makedirs(args.output_dir, exist_ok=True)
-
-    # Run the async main function
-    asyncio.run(main(args.provider, args.data_dir, args.output_dir))
+    asyncio.run(main())

@@ -1,6 +1,6 @@
 """Tests for the license detector module."""
 
-from src.data_models.license_types import LicenseType
+from src.data_models.response_models import LicenseType
 from src.services.license_detector import LicenseDetector
 
 
