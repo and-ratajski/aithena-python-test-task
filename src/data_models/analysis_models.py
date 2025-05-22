@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from src.data_models.license_types import LicenseType
+from src.data_models.response_models import LicenseType
 
 
 class FunctionInfo(BaseModel):
